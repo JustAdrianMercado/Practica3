@@ -1,11 +1,14 @@
-// Caja de los Enigmas - objeto inteligente (Iteracion 0: esqueleto de punta a punta).
-// Se conecta a AWS IoT Core, publica un estado reportado fijo y muestra por Serial los mensajes
-// del Shadow. Servo, reed switch y codigo de vinculacion se agregan en la Iteracion 1.
+// Caja de los Enigmas - objeto inteligente.
+// Sincroniza su estado con el Device Shadow de AWS IoT Core: reporta cerradura, tapa y codigo de
+// vinculacion, y aplica las ordenes que llegan en el delta.
+// Mientras no se integre CerraduraServo, la cerradura es simulada: la orden se aplica al estado.
 
 #include <Arduino.h>
 
+#include "CodigoVinculacion.h"
 #include "ConexionAwsIot.h"
 #include "ConexionWifi.h"
+#include "EstadoShadow.h"
 
 #if __has_include("ConfiguracionWifi.h")
 #include "ConfiguracionWifi.h"
@@ -21,43 +24,85 @@
 
 namespace {
 
-constexpr char VersionFirmware[] = "0.0.1";
-constexpr unsigned long IntervaloReporteMs = 60000UL;  // Reporte periodico de respaldo.
+constexpr char VersionFirmware[] = "0.1.0";
+constexpr unsigned long IntervaloReportePeriodicoMs = 60000UL;  // Respaldo (contratos, sec. 3).
+constexpr size_t TamanoReporte = 256;
 
 ConexionWifi conexionWifi(NombreRedWifi, ClaveRedWifi);
 ConexionAwsIot conexionAws(conexionWifi, EndpointAwsIot, PuertoAwsIot, NombreThing,
                            CertificadoCaAmazon, CertificadoDispositivo, ClavePrivadaDispositivo);
-ConexionAwsIot::MensajeShadow mensaje;  // Global: 2 KB fuera de la pila de loop().
+CodigoVinculacion codigoVinculacion;
+EstadoShadow estadoShadow(codigoVinculacion.texto(), VersionFirmware);
+
+ConexionAwsIot::MensajeShadow mensajeRecibido;  // Global: 2 KB fuera de la pila de loop().
 unsigned long ultimoReporteMs = 0;
 
-// Estado provisional hasta integrar CerraduraServo, SensorTapa y CodigoVinculacion.
-void publicarReporte() {
-    char documento[192];
-    snprintf(documento, sizeof(documento),
-             "{\"state\":{\"reported\":{\"cerradura\":\"cerrada\",\"tapa\":\"cerrada\","
-             "\"codigoVinculacion\":\"0000\",\"firmware\":\"%s\"}}}",
-             VersionFirmware);
+void aplicarOrdenCerradura(const OrdenCerradura& orden) {
+    if (!orden.estaPresente) {
+        return;
+    }
+    if (!orden.esValida) {
+        // Contrato: no mover nada y volver a reportar el estado real.
+        Serial.println(F("Orden: valor de cerradura invalido; se reporta el estado real."));
+        estadoShadow.solicitarReporte();
+        return;
+    }
+    Serial.print(F("Orden: cerradura -> "));
+    Serial.println(EstadoShadow::textoCerradura(orden.estadoPedido));
+    estadoShadow.establecerCerradura(orden.estadoPedido);  // Aqui se movera CerraduraServo.
+    // Reportar aunque ya estuviera asi: el delta indica que la nube tiene otro valor.
+    estadoShadow.solicitarReporte();
+}
+
+void procesarMensaje(const ConexionAwsIot::MensajeShadow& mensaje) {
+    OrdenCerradura orden;
+    bool sePudoLeer = false;
+    if (mensaje.tipo == ConexionAwsIot::TipoMensaje::Delta) {
+        sePudoLeer = EstadoShadow::leerOrdenDelta(mensaje.contenido, orden);
+    } else {
+        sePudoLeer = EstadoShadow::leerOrdenDocumentoCompleto(mensaje.contenido, orden);
+    }
+    if (!sePudoLeer) {
+        Serial.println(F("Shadow: mensaje con JSON invalido; se ignora."));
+        return;
+    }
+    aplicarOrdenCerradura(orden);
+}
+
+void publicarReporteSiHaceFalta() {
+    if (!estadoShadow.hayCambiosSinReportar() || !conexionAws.estaConectada()) {
+        return;
+    }
+    char documento[TamanoReporte];
+    if (!estadoShadow.escribirReporte(documento, sizeof(documento))) {
+        Serial.println(F("Shadow: el reporte no entra en el buffer."));
+        return;
+    }
     if (conexionAws.publicarActualizacion(documento)) {
+        estadoShadow.confirmarReporte();
         ultimoReporteMs = millis();
         Serial.print(F("Shadow: reportado "));
         Serial.println(documento);
     }
 }
 
-void mostrarMensaje(const ConexionAwsIot::MensajeShadow& recibido) {
-    if (recibido.tipo == ConexionAwsIot::TipoMensaje::Delta) {
-        Serial.print(F("Shadow: delta recibido "));
-    } else {
-        Serial.print(F("Shadow: documento completo "));
+void solicitarReportePeriodico() {
+    // La resta sin signo sigue funcionando cuando millis() se desborda.
+    if (millis() - ultimoReporteMs >= IntervaloReportePeriodicoMs) {
+        estadoShadow.solicitarReporte();
     }
-    Serial.println(recibido.contenido);
 }
 
 }  // namespace
 
 void setup() {
     Serial.begin(115200);
-    Serial.println(F("Caja de los Enigmas - SIS-234 - Iteracion 0"));
+    Serial.print(F("Caja de los Enigmas - SIS-234 - firmware "));
+    Serial.println(VersionFirmware);
+
+    codigoVinculacion.iniciar();
+    Serial.print(F("Vinculacion: codigo de esta caja = "));
+    Serial.println(codigoVinculacion.texto());
     conexionWifi.iniciar();
     conexionAws.iniciar();
 }
@@ -67,13 +112,11 @@ void loop() {
     conexionAws.actualizar();
 
     if (conexionAws.seAcabaDeConectar()) {
-        publicarReporte();
+        estadoShadow.solicitarReporte();
     }
-    while (conexionAws.tomarMensaje(mensaje)) {
-        mostrarMensaje(mensaje);
+    while (conexionAws.tomarMensaje(mensajeRecibido)) {
+        procesarMensaje(mensajeRecibido);
     }
-    // La resta sin signo sigue funcionando cuando millis() se desborda.
-    if (conexionAws.estaConectada() && millis() - ultimoReporteMs >= IntervaloReporteMs) {
-        publicarReporte();
-    }
+    solicitarReportePeriodico();
+    publicarReporteSiHaceFalta();
 }
