@@ -1,14 +1,19 @@
 // Caja de los Enigmas - objeto inteligente.
-// Sincroniza su estado con el Device Shadow de AWS IoT Core: reporta cerradura, tapa y codigo de
-// vinculacion, y aplica las ordenes que llegan en el delta.
-// Mientras no se integre CerraduraServo, la cerradura es simulada: la orden se aplica al estado.
+// Sincroniza su estado con el Device Shadow de AWS IoT Core: mueve el servo de la cerradura
+// segun las ordenes del delta y reporta la cerradura, la tapa (reed switch) y el codigo de
+// vinculacion. Por Serial acepta comandos de prueba (escribir "ayuda").
 
 #include <Arduino.h>
+#include <string.h>
 
+#include "CerraduraServo.h"
 #include "CodigoVinculacion.h"
 #include "ConexionAwsIot.h"
 #include "ConexionWifi.h"
+#include "ConfiguracionHardware.h"
+#include "ConsolaSerial.h"
 #include "EstadoShadow.h"
+#include "SensorTapa.h"
 
 #if __has_include("ConfiguracionWifi.h")
 #include "ConfiguracionWifi.h"
@@ -24,18 +29,52 @@
 
 namespace {
 
-constexpr char VersionFirmware[] = "0.1.0";
+constexpr char VersionFirmware[] = "0.2.0";
 constexpr unsigned long IntervaloReportePeriodicoMs = 60000UL;  // Respaldo (contratos, sec. 3).
 constexpr size_t TamanoReporte = 256;
 
 ConexionWifi conexionWifi(NombreRedWifi, ClaveRedWifi);
 ConexionAwsIot conexionAws(conexionWifi, EndpointAwsIot, PuertoAwsIot, NombreThing,
                            CertificadoCaAmazon, CertificadoDispositivo, ClavePrivadaDispositivo);
+CerraduraServo cerraduraServo(PinServoCerradura, AnguloCerraduraCerradaGrados,
+                              AnguloCerraduraAbiertaGrados);
+SensorTapa sensorTapa(PinReedTapa);
 CodigoVinculacion codigoVinculacion;
 EstadoShadow estadoShadow(codigoVinculacion.texto(), VersionFirmware);
+ConsolaSerial consola;
 
 ConexionAwsIot::MensajeShadow mensajeRecibido;  // Global: 2 KB fuera de la pila de loop().
 unsigned long ultimoReporteMs = 0;
+
+// --- Actuador y sensor ---------------------------------------------------------------------
+
+void moverCerradura(EstadoCerradura estadoPedido) {
+    if (estadoPedido == EstadoCerradura::Abierta) {
+        cerraduraServo.abrir();
+    } else {
+        cerraduraServo.cerrar();
+    }
+    estadoShadow.establecerCerradura(estadoPedido);
+    Serial.print(F("Cerradura: "));
+    Serial.println(EstadoShadow::textoCerradura(estadoPedido));
+}
+
+EstadoTapa leerEstadoTapa() {
+    return sensorTapa.estaAbierta() ? EstadoTapa::Abierta : EstadoTapa::Cerrada;
+}
+
+void actualizarTapa() {
+    sensorTapa.actualizar();
+    if (!sensorTapa.huboCambio()) {
+        return;
+    }
+    const EstadoTapa estadoTapa = leerEstadoTapa();
+    estadoShadow.establecerTapa(estadoTapa);  // Se reporta en esta misma vuelta del loop().
+    Serial.print(F("Tapa: "));
+    Serial.println(EstadoShadow::textoTapa(estadoTapa));
+}
+
+// --- Ordenes del Shadow ----------------------------------------------------------------------
 
 void aplicarOrdenCerradura(const OrdenCerradura& orden) {
     if (!orden.estaPresente) {
@@ -47,9 +86,8 @@ void aplicarOrdenCerradura(const OrdenCerradura& orden) {
         estadoShadow.solicitarReporte();
         return;
     }
-    Serial.print(F("Orden: cerradura -> "));
-    Serial.println(EstadoShadow::textoCerradura(orden.estadoPedido));
-    estadoShadow.establecerCerradura(orden.estadoPedido);  // Aqui se movera CerraduraServo.
+    Serial.print(F("Orden del Shadow: "));
+    moverCerradura(orden.estadoPedido);
     // Reportar aunque ya estuviera asi: el delta indica que la nube tiene otro valor.
     estadoShadow.solicitarReporte();
 }
@@ -68,6 +106,8 @@ void procesarMensaje(const ConexionAwsIot::MensajeShadow& mensaje) {
     }
     aplicarOrdenCerradura(orden);
 }
+
+// --- Reportes --------------------------------------------------------------------------------
 
 void publicarReporteSiHaceFalta() {
     if (!estadoShadow.hayCambiosSinReportar() || !conexionAws.estaConectada()) {
@@ -93,6 +133,43 @@ void solicitarReportePeriodico() {
     }
 }
 
+// --- Consola de prueba -----------------------------------------------------------------------
+
+void mostrarAyuda() {
+    Serial.println(F("Comandos: abrir, cerrar, estado, codigo, ayuda."));
+    Serial.println(F("Con conexion a AWS, el desired del Shadow manda: puede revertir abrir/cerrar."));
+}
+
+void mostrarEstado() {
+    Serial.print(F("Estado: cerradura="));
+    Serial.print(EstadoShadow::textoCerradura(estadoShadow.cerradura()));
+    Serial.print(F(" tapa="));
+    Serial.print(EstadoShadow::textoTapa(estadoShadow.tapa()));
+    Serial.print(F(" aws="));
+    Serial.println(conexionAws.estaConectada() ? F("conectado") : F("desconectado"));
+}
+
+void ejecutarComando(const char* comando) {
+    if (strcmp(comando, "abrir") == 0) {
+        moverCerradura(EstadoCerradura::Abierta);
+    } else if (strcmp(comando, "cerrar") == 0) {
+        moverCerradura(EstadoCerradura::Cerrada);
+    } else if (strcmp(comando, "estado") == 0) {
+        mostrarEstado();
+    } else if (strcmp(comando, "codigo") == 0) {
+        Serial.print(F("Vinculacion: codigo de esta caja = "));
+        Serial.println(codigoVinculacion.texto());
+    } else {
+        mostrarAyuda();
+    }
+}
+
+void atenderConsola() {
+    if (consola.leerComando()) {
+        ejecutarComando(consola.comando());
+    }
+}
+
 }  // namespace
 
 void setup() {
@@ -100,11 +177,18 @@ void setup() {
     Serial.print(F("Caja de los Enigmas - SIS-234 - firmware "));
     Serial.println(VersionFirmware);
 
+    cerraduraServo.iniciar();  // Arranca cerrada.
+    sensorTapa.iniciar();
+    estadoShadow.establecerCerradura(EstadoCerradura::Cerrada);
+    estadoShadow.establecerTapa(leerEstadoTapa());
+
     codigoVinculacion.iniciar();
     Serial.print(F("Vinculacion: codigo de esta caja = "));
     Serial.println(codigoVinculacion.texto());
+
     conexionWifi.iniciar();
     conexionAws.iniciar();
+    mostrarAyuda();
 }
 
 void loop() {
@@ -117,6 +201,8 @@ void loop() {
     while (conexionAws.tomarMensaje(mensajeRecibido)) {
         procesarMensaje(mensajeRecibido);
     }
+    actualizarTapa();
+    atenderConsola();
     solicitarReportePeriodico();
     publicarReporteSiHaceFalta();
 }
