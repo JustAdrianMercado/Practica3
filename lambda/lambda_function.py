@@ -10,7 +10,7 @@ from servicios.repositorio_vinculaciones import (
 )
 from servicios.servicio_shadow import ServicioShadow
 from servicios.servicio_registro import ServicioRegistro
-
+from manejadores.vincular_caja import VincularCajaIntentHandler
 
 # 1. Configuracion de AWS
 REGION = "us-east-1"
@@ -64,8 +64,16 @@ sb = SkillBuilder()
 
 sb.add_request_handler(
     LaunchRequestHandler(repositorio)
+
 )
 
-
+sb.add_request_handler(
+    VincularCajaIntentHandler(
+        repositorio,
+        servicio_registro,
+        servicio_shadow,
+        os.environ.get("PREFIJO_THING", "caja-enigmas-")
+    )
+)
 # 6. Punto de entrada de AWS Lambda
 lambda_handler = sb.lambda_handler()
