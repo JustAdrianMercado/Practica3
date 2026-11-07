@@ -1,0 +1,173 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "caja de enigmas",
+      "intents": [
+        {
+          "name": "VincularCajaIntent",
+          "slots": [
+            {
+              "name": "numeroCaja",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "codigo",
+              "type": "AMAZON.FOUR_DIGIT_NUMBER"
+            }
+          ],
+          "samples": [
+            "vincula mi caja {numeroCaja} con el código {codigo}",
+            "registra la caja {numeroCaja} con el código {codigo}",
+            "vincula mi caja",
+            "registra mi caja",
+            "vincula la caja {numeroCaja}",
+            "registra la caja {numeroCaja}",
+            "cambia mi caja",
+            "asocia mi caja"
+          ]
+        },
+        {
+          "name": "DesvincularCajaIntent",
+          "slots": [],
+          "samples": [
+            "desvincula mi caja",
+            "olvida mi caja",
+            "elimina mi vinculación",
+            "quita mi caja",
+            "desasocia mi caja",
+            "borra la vinculación",
+            "quiero desvincular mi caja",
+            "deja de usar mi caja"
+          ]
+        },
+        {
+          "name": "ConsultarTapaIntent",
+          "slots": [],
+          "samples": [
+            "cómo está la caja",
+            "cómo está la tapa",
+            "la tapa está abierta",
+            "la tapa está cerrada",
+            "consulta la tapa",
+            "dime el estado de la tapa",
+            "está abierta la tapa",
+            "está cerrada la tapa"
+          ]
+        },
+        {
+          "name": "ConsultarCerraduraIntent",
+          "slots": [],
+          "samples": [
+            "cómo está la cerradura",
+            "está trabada la caja",
+            "está destrabada la caja",
+            "la cerradura está abierta",
+            "la cerradura está cerrada",
+            "consulta la cerradura",
+            "dime el estado de la cerradura",
+            "está cerrada la cerradura"
+          ]
+        },
+        {
+          "name": "AbrirCerraduraIntent",
+          "slots": [],
+          "samples": [
+            "abre la cerradura",
+            "destraba la caja",
+            "abre mi caja",
+            "desbloquea la cerradura",
+            "quiero abrir la caja",
+            "destraba mi caja",
+            "abre la caja",
+            "desbloquea mi caja"
+          ]
+        },
+        {
+          "name": "CerrarCerraduraIntent",
+          "slots": [],
+          "samples": [
+            "cierra la cerradura",
+            "traba la caja",
+            "cierra mi caja",
+            "bloquea la cerradura",
+            "quiero cerrar la caja",
+            "traba mi caja",
+            "cierra la caja",
+            "bloquea mi caja"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        }
+      ],
+      "types": []
+    },
+    "dialog": {
+      "delegationStrategy": "ALWAYS",
+      "intents": [
+        {
+          "name": "VincularCajaIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "numeroCaja",
+              "type": "AMAZON.NUMBER",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.numeroCaja"
+              }
+            },
+            {
+              "name": "codigo",
+              "type": "AMAZON.FOUR_DIGIT_NUMBER",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.codigo"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      {
+        "id": "Elicit.numeroCaja",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "¿Cuál es el número de tu caja?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.codigo",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "¿Cuál es el código de cuatro dígitos que muestra tu caja?"
+          }
+        ]
+      }
+    ]
+  }
+}
