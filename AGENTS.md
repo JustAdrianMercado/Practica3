@@ -37,6 +37,25 @@ Al terminar una revisión, informar qué se comprobó, qué está bien y qué ha
 
 Si una regla de AWS de abajo dice lo contrario (por ejemplo, preferir infraestructura como código o desplegar recursos), manda esta sección.
 
+### Configuración recomendada del servidor `aws-mcp`: `--read-only`
+
+Cada integrante que instale el AWS Agent Toolkit (`aws configure agent-toolkit`) debe agregar `--read-only` a los argumentos de `aws-mcp` en la configuración MCP de su agente, y poner su perfil en `AWS_MCP_PROXY_PROFILES`. En Codex (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.aws-mcp]
+command = "uvx"
+args = ["mcp-proxy-for-aws@latest", "https://aws-mcp.us-east-1.api.aws/mcp", "--metadata", "INSTALL_SOURCE=aws-cli", "--read-only"]
+env = { AWS_MCP_PROXY_PROFILES = "caja-enigmas" }
+```
+
+En Claude Code, Cursor o Gemini (JSON) se agrega `"--read-only"` al final de `"args"` y `"env": { "AWS_MCP_PROXY_PROFILES": "caja-enigmas" }`. En OpenCode va al final de `"command"`, y la clave de las variables es `"environment"`.
+
+Con `--read-only`, el proxy desactiva `aws___run_script` y `aws___get_presigned_url`. El MCP queda solo para la documentación, las skills de AWS y la disponibilidad por región. Por eso:
+- **Las revisiones de recursos** (Describe, Get, List) se hacen con AWS CLI y el perfil del integrante, siguiendo las reglas de esta sección. Por ejemplo: `aws iot describe-thing --thing-name caja-enigmas-01 --profile caja-enigmas`.
+- **Las excepciones de escritura** de la lista de arriba también se hacen con AWS CLI, después de la confirmación explícita del integrante.
+
+Si el servidor no conecta la primera vez ("connection timed out"), es porque `uvx` está descargando el proxy. Hay que esperar y volver a conectarlo, o arrancar el agente con más margen (en Claude Code, `MCP_TIMEOUT=60000`).
+
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance
 
