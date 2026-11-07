@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1480" height="1080" viewBox="0 0 1480 1080" role="img" aria-labelledby="titulo descripcion">
   <title id="titulo">Caja de los Enigmas: circuito previsto del ESP32, SG90 y reed</title>
-  <desc id="descripcion">Esquema funcional, sin posiciones físicas de pines ni protoboard. El ESP32 recibe alimentación USB. GPIO18 controla la señal del SG90, alimentado por una fuente externa regulada de 5 V. GPIO4 se conecta mediante un reed de dos terminales a GND, con INPUT_PULLUP interno. La fuente, el servo, el ESP32 y el reed comparten GND. Un capacitor electrolítico opcional de 470 a 1000 microfaradios se conecta entre el positivo externo y GND, respetando su polaridad. Los positivos de USB y de la fuente externa no se unen.</desc>
+  <desc id="descripcion">Esquema funcional, sin posiciones físicas de pines ni protoboard. El ESP32 recibe alimentación USB. GPIO18 controla la señal del SG90, alimentado por una fuente externa regulada de 5 V. GPIO4 se conecta mediante un reed de dos terminales a GND, con INPUT_PULLUP interno. La interpretación provisional LOW = tapa cerrada y HIGH = tapa abierta supone que el contacto cierra al acercar el imán; debe comprobarse físicamente porque no todos los reed actúan igual. La fuente, el servo, el ESP32 y el reed comparten GND. Se recomienda, sin ser obligatorio, un capacitor electrolítico de 470 a 1000 microfaradios, preferiblemente de 16 V nominales: positivo a +5 V del servo y negativo a GND. Los 16 V son la tensión nominal máxima del capacitor, no su tensión de alimentación; en este circuito se aplican 5 V respetando su polaridad. Los positivos de USB y de la fuente externa no se unen.</desc>
   <defs>
     <style>
       text { font-family: 'Segoe UI', Arial, sans-serif; fill: #172c43; }
@@ -68,12 +68,15 @@
   <text x="1210" y="637" class="etiqueta">+</text>
   <text x="1210" y="674" class="etiqueta">−</text>
   <text x="1285" y="707" class="pequena" text-anchor="middle">Electrolítico polarizado</text>
-  <text x="1285" y="730" class="pequena" text-anchor="middle">Tensión nominal &gt; 5 V</text>
+  <text x="1285" y="730" class="pequena" text-anchor="middle">Preferiblemente 16 V</text>
 
   <path id="senal-servo" d="M410 350 H700 V420 H900" class="senal"/>
   <text x="485" y="334" class="nota">Señal de control · GPIO18</text>
   <path id="entrada-reed" d="M410 440 H470 V665 H500" class="entrada"/>
-  <text x="500" y="481" class="nota">GPIO4 → contacto</text>
+  <text x="500" y="481" class="nota">GPIO4 → contacto · INPUT_PULLUP</text>
+  <text x="500" y="505" class="pequena">Provisional: LOW = tapa cerrada; HIGH = tapa abierta.</text>
+  <text x="500" y="529" class="pequena">Supone que el contacto cierra al acercar el imán.</text>
+  <text x="500" y="553" class="pequena">Verificar físicamente; no todos los reed actúan igual.</text>
   <path id="alimentacion-servo" d="M1000 220 V340" class="positivo"/>
   <path id="positivo-capacitor" d="M1000 280 H1260 V540 H1380 V639 H1280" class="positivo"/>
   <text x="1060" y="268" class="nota">+5 V externo</text>
@@ -92,6 +95,8 @@
   </g>
   <path d="M800 840 V863 M776 863 H824 M784 875 H816 M793 887 H807" class="tierra"/>
   <text x="60" y="878" class="etiqueta">GND común: ESP32 + fuente externa + servo + reed</text>
+  <text x="60" y="904" class="pequena">Capacitor recomendado, no obligatorio: + a +5 V del servo; − a GND.</text>
+  <text x="820" y="904" class="pequena">16 V: tensión nominal máxima, no alimentación (5 V).</text>
   <g class="terminal">
     <circle cx="230" cy="230" r="7"/>
     <circle cx="410" cy="350" r="7"/><circle cx="410" cy="440" r="7"/><circle cx="230" cy="590" r="7"/>

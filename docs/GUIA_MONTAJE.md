@@ -19,7 +19,7 @@ Registrar resultados reales en [PRUEBAS_FISICAS.md](PRUEBAS_FISICAS.md).
 | Fuente externa regulada de 5 V CC | Salida, polaridad y capacidad de corriente apropiada para el servo concreto | Pendiente de selección/verificación |
 | Conector o adaptador de baja tensión para la fuente | Terminales + y − identificados y aislados | Por definir |
 | Protoboard y cables | Continuidad de grupos y posibles cortes de rieles según el modelo | Distribución pendiente |
-| Capacitor electrolítico de 470–1000 µF, opcional | Polaridad y tensión nominal superior a 5 V | Pendiente de compra/verificación |
+| Capacitor electrolítico de 470–1000 µF, recomendado, no obligatorio | Polaridad y tensión nominal superior a 5 V, preferiblemente 16 V | Pendiente de compra/verificación |
 | Caja, pestillo, fijaciones y soporte del sensor | Recorrido libre y cierre que se sostenga sin esfuerzo continuo del servo | Geometría pendiente |
 | Computadora con PlatformIO | Diagnósticos ya disponibles en `firmware/pruebas/` | Ejecución física pendiente |
 | Regla y cámara o teléfono | Medir distancia del imán y registrar evidencias | Comprobar disponibilidad |
@@ -63,7 +63,11 @@ con una fotografía del montaje disponible.
 Los colores del servo son habituales, no una garantía: confirmar el cableado del
 ejemplar. El reed simple de dos terminales no lleva + y − de alimentación; lo
 pendiente es su respuesta al imán y la **polaridad lógica** que representa tapa
-cerrada. LOW = cerrada / HIGH = abierta sigue siendo una convención provisional.
+cerrada. Con GPIO4 en `INPUT_PULLUP`, **LOW = tapa cerrada / HIGH = tapa abierta**
+sigue siendo una interpretación provisional. Supone que el contacto se cierra al
+acercar el imán y que el imán está cerca cuando la tapa está cerrada. No todos los
+sensores reed tienen el mismo comportamiento: comprobar físicamente el contacto
+al acercar y alejar el imán antes de validar esa interpretación.
 
 ## 3. Preparar la mesa, la placa y los diagnósticos
 
@@ -109,9 +113,15 @@ la conexión antes de pasar a la siguiente; si no coincide, corregir sin energí
 | S1 | Negativo de fuente → GND del ESP32 | Seguir el cable desde el borne − identificado hasta un pin rotulado GND | Referencia común, sin pasar por 3V3 ni VIN/5V |
 | S2 | GND del servo → negativo de fuente/GND común | Revisar terminal real del servo y unión firme a la red GND | Negativo del servo inequívoco y común al ESP32 |
 | S3 | Positivo de fuente → positivo del servo | Seguir el cable desde + hasta el positivo confirmado del SG90 | No llega a GPIO, 3V3, VIN/5V ni positivo USB |
-| S4, opcional | Capacitor + → +5 V del servo | Leer identificación del terminal + y tensión nominal; no fiarse solo del largo de las patas | 470–1000 µF, tensión nominal superior a 5 V y polaridad identificada |
+| S4, opcional | Capacitor + → +5 V del servo | Leer identificación del terminal + y tensión nominal; no fiarse solo del largo de las patas | 470–1000 µF, tensión nominal superior a 5 V (preferiblemente 16 V) y polaridad identificada |
 | S5, opcional | Capacitor − → GND del servo | Confirmar el terminal negativo mediante la marca del componente y que no haya puente entre patas | Capacitor en paralelo entre +5 V y GND, sin inversión ni cortocircuito |
 | S6 | Señal del servo → GPIO18 | Seguir el cable de señal confirmado hasta el pin etiquetado GPIO18 | Señal separada de +5 V; GPIO18 no alimenta el motor |
+
+El capacitor es **recomendado, no obligatorio**. Preferir uno de **470–1000 µF y
+16 V de tensión nominal**: los 16 V indican la tensión nominal máxima admisible
+del capacitor, respetando su polaridad; **no son su tensión de alimentación**.
+En este circuito, su positivo va a **+5 V del servo** y su negativo a **GND**:
+la tensión aplicada es 5 V, no 16 V.
 
 Si no se instala capacitor, omitir **ambos** pasos opcionales y registrarlo.
 Colocarlo cerca de la alimentación del servo cuando se instale. No sustituye una
