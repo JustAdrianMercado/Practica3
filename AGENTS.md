@@ -12,6 +12,23 @@ Repositorio de la Práctica 3 de SIS-234: **Caja de los Enigmas**, un objeto int
 - Código modular y orientado a objetos, con comentarios y documentación en español; C++ en el estilo del firmware existente y PEP 8 en Python.
 - Cada integrante hace commits con su propia cuenta de GitHub, en su rama, e integra a `main` mediante PR.
 
+## Código limpio y fácil de entender
+
+El código lo tienen que poder explicar todos los integrantes en la defensa individual. Escribirlo para que se entienda leyéndolo una vez:
+
+- **Nombres descriptivos en español**, que digan qué es o qué hace, sin abreviaturas inventadas: `ultimoReporteMs`, no `ur` ni `tmp`; `codigoVinculacion`, no `cod`.
+- **Unidades en el nombre** cuando el valor tiene unidad: `IntervaloReporteMs`, `TiempoHandshakeTlsS`, `DistanciaMinimaCm`.
+- **Booleanos como preguntas:** `estaConectada()`, `hayCambiosSinReportar()`, `esValido`.
+- **Sin números mágicos:** cada valor fijo es una constante con nombre (`constexpr` en C++, MAYÚSCULAS en Python), con un comentario si su valor no es obvio.
+- **Funciones cortas, con una sola responsabilidad.** Si una función necesita un comentario para separar sus partes, dividirla en funciones con nombre.
+- **Salir temprano** (`return` ante el caso inválido) en lugar de anidar varios `if`.
+- **Comentarios que explican el porqué**, no lo que ya dice el código. Cada clase tiene un comentario corto con su responsabilidad.
+- **Sin código muerto** ni comentado; sin `Serial.print` de depuración olvidados.
+- **Convenciones:**
+  - C++: clases y constantes en `PascalCase`, métodos y variables en `camelCase`, atributos privados con sufijo `_` (`estado_`), enums como `enum class`.
+  - Python: PEP 8, con funciones y variables en `snake_case`, clases en `PascalCase` y constantes en `MAYÚSCULAS`.
+- Ante la duda, priorizar lo más simple de leer frente a lo más corto o lo más "ingenioso".
+
 ## Uso de AWS por agentes: solo lectura salvo excepciones
 
 El servidor `aws-mcp` y la AWS CLI tienen acceso a toda la cuenta del grupo. **Todo lo que se crea, modifica o borra en AWS lo hace una persona del grupo, a mano, desde la consola.** El agente sirve para **revisar** que lo hecho a mano esté bien.

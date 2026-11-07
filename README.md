@@ -52,6 +52,13 @@ Requisitos: PlatformIO (extensión de VS Code o `pio` en la terminal).
 
 Sin las copias locales, el proyecto compila con las plantillas vacías y no intenta conectarse.
 
+Pruebas en la PC de la lógica del Shadow (`EstadoShadow`), sin placa. Requieren `g++` en el PATH (por ejemplo, MinGW):
+
+```powershell
+cd firmware
+pio test -e pruebas
+```
+
 ## Seguridad
 
 - Los certificados, la clave privada del Thing y la contraseña del WiFi **no se versionan**: viven en `firmware/include/Configuracion*.h` o en `certificados-privados/`, ambos excluidos por `.gitignore`.
