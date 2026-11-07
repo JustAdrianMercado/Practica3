@@ -113,13 +113,17 @@ Un usuario tiene como máximo una caja vinculada.
 
 Todo intent que actúa sobre una caja resuelve primero la vinculación del `userId`. Si no la hay, la skill explica cómo vincular (RF8).
 
-## 8. Hardware (pendiente de confirmación de Santiago)
+## 8. Hardware
 
-| Elemento | Valor provisional |
-|---|---|
-| Placa | ESP32 DOIT DEVKIT V1 (`esp32doit-devkit-v1`). |
-| Servo SG90 (señal) | GPIO 18. |
-| Alimentación del servo | 5 V de fuente externa o VIN, **GND común con el ESP32**; capacitor de 470–1000 µF recomendado. |
-| Ángulos del servo | cerrada = ? ° / abierta = ? ° (los calibra Santiago). |
-| Reed switch | Entre GPIO 4 y GND, con `INPUT_PULLUP`. |
-| Valor lógico con la tapa cerrada | ? (lo mide Santiago; con el imán cerca, el reed cierra y se lee `LOW`). |
+Los valores del firmware están todos en [firmware/include/ConfiguracionHardware.h](../firmware/include/ConfiguracionHardware.h); al calibrar el montaje se cambia solo ese archivo. El cableado está en [docs/GUIA_MONTAJE.md](GUIA_MONTAJE.md).
+
+| Elemento | Valor | Estado |
+|---|---|---|
+| Placa | ESP32 DOIT DEVKIT V1 (`esp32doit-devkit-v1`). | Confirmado |
+| Servo SG90 (señal) | GPIO 18. | Confirmado |
+| Alimentación del servo | Fuente externa regulada de 5 V, **sin usar VIN**, con **GND común con el ESP32**; capacitor de 470–1000 µF recomendado. | Confirmado; fuente pendiente de compra |
+| Ángulos del servo | cerrada = 45° / abierta = 135° | **Provisionales**: calibrar con `firmware/pruebas/servo` |
+| Reed switch | Entre GPIO 4 y GND, con `INPUT_PULLUP`. | Confirmado; reed pendiente de compra |
+| Valor lógico con la tapa cerrada | `LOW` (imán cerca: el reed cierra a GND). `HIGH` = tapa abierta. | **Provisional**: verificar con `firmware/pruebas/reed` |
+
+Sin el reed conectado, el pull-up deja GPIO 4 en `HIGH` y la placa reporta `tapa: "abierta"`. Es lo esperado mientras no esté el montaje.
