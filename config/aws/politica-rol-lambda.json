@@ -1,0 +1,26 @@
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AccesoShadow",
+      "Effect": "Allow",
+      "Action": [
+        "iot:GetThingShadow",
+        "iot:UpdateThingShadow",
+        "iot:DescribeThing"
+      ],
+      "Resource": "arn:aws:iot:us-east-1:977308215256:thing/caja-enigmas-*"
+    },
+    {
+      "Sid": "AccesoDynamoDB",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:977308215256:table/CajaEnigmasVinculaciones"
+    }
+  ]
+}
