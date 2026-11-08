@@ -2,6 +2,8 @@
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.utils import is_intent_name, get_slot
 
+from manejadores.identidad import obtener_user_id
+
 
 class VincularCajaIntentHandler(AbstractRequestHandler):
 
@@ -26,10 +28,7 @@ class VincularCajaIntentHandler(AbstractRequestHandler):
                 .response
             )
 
-        user_id = (
-            handler_input.request_envelope
-            .context.system.user.user_id
-        )
+        user_id = obtener_user_id(handler_input)
 
         numero_slot = get_slot(handler_input, "numeroCaja")
         codigo_slot = get_slot(handler_input, "codigo")
@@ -51,13 +50,22 @@ class VincularCajaIntentHandler(AbstractRequestHandler):
         # Validar el identificador de la caja
         try:
             numero_int = int(numero.strip())
-        except ValueError:
+        except (AttributeError, TypeError, ValueError):
             return responder("El número de caja no es válido.")
 
         if not 1 <= numero_int <= 99:
             return responder(
                 "El número de caja debe estar entre 1 y 99."
             )
+
+        # Rechazar datos inválidos antes de llamar a AWS.
+        codigo_ingresado = codigo.strip() if isinstance(codigo, str) else ""
+        if not (
+            codigo_ingresado.isascii()
+            and codigo_ingresado.isdigit()
+            and len(codigo_ingresado) == 4
+        ):
+            return responder("El código debe tener cuatro dígitos.")
 
         thing_name = f"{self.prefijo}{numero_int:02d}"
 
@@ -71,22 +79,10 @@ class VincularCajaIntentHandler(AbstractRequestHandler):
         reported = self.shadow.leer_reported(thing_name)
         codigo_real = reported.get("codigoVinculacion")
 
-        # El código tiene cuatro dígitos según el
-        # contrato actual del grupo.
-        codigo_ingresado = codigo.strip()
-
-        if not (
-            codigo_ingresado.isascii()
-            and codigo_ingresado.isdigit()
-            and len(codigo_ingresado) == 4
-        ):
-            return responder(
-                "El código debe tener cuatro dígitos."
-            )
-
+        # El contrato exige string: no convertir números del Shadow a texto.
         if (
-            codigo_real is None
-            or codigo_ingresado != str(codigo_real)
+            not isinstance(codigo_real, str)
+            or codigo_ingresado != codigo_real
         ):
             return responder(
                 "El código de vinculación es incorrecto."

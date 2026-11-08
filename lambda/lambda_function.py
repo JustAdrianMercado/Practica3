@@ -1,5 +1,7 @@
+"""Punto de entrada y composición de dependencias del backend de Alexa."""
 
 import os
+
 import boto3
 
 from ask_sdk_core.skill_builder import SkillBuilder
@@ -11,6 +13,60 @@ from servicios.repositorio_vinculaciones import (
 from servicios.servicio_shadow import ServicioShadow
 from servicios.servicio_registro import ServicioRegistro
 from manejadores.vincular_caja import VincularCajaIntentHandler
+from manejadores.desvincular_caja import (
+    DesvincularCajaIntentHandler
+)
+from manejadores.consultar_tapa import (
+    ConsultarTapaIntentHandler
+)
+from manejadores.consultar_cerradura import ConsultarCerraduraIntentHandler
+from manejadores.controlar_cerradura import (
+    AbrirCerraduraIntentHandler,
+    CerrarCerraduraIntentHandler,
+)
+from manejadores.errores import GlobalExceptionHandler
+from manejadores.sesion import (
+    HelpIntentHandler,
+    CancelOrStopIntentHandler,
+    FallbackIntentHandler,
+    NavigateHomeIntentHandler,
+    SessionEndedRequestHandler,
+)
+
+
+def crear_skill(repositorio, servicio_registro, servicio_shadow,
+                prefijo="caja-enigmas-"):
+    """Registra todos los manejadores con servicios reemplazables en tests."""
+    skill_builder = SkillBuilder()
+    skill_builder.add_request_handler(LaunchRequestHandler(repositorio))
+    skill_builder.add_request_handler(
+        VincularCajaIntentHandler(
+            repositorio, servicio_registro, servicio_shadow, prefijo
+        )
+    )
+    skill_builder.add_request_handler(
+        DesvincularCajaIntentHandler(repositorio)
+    )
+    skill_builder.add_request_handler(
+        ConsultarTapaIntentHandler(repositorio, servicio_shadow)
+    )
+    skill_builder.add_request_handler(
+        ConsultarCerraduraIntentHandler(repositorio, servicio_shadow)
+    )
+    skill_builder.add_request_handler(
+        AbrirCerraduraIntentHandler(repositorio, servicio_shadow)
+    )
+    skill_builder.add_request_handler(
+        CerrarCerraduraIntentHandler(repositorio, servicio_shadow)
+    )
+    skill_builder.add_request_handler(HelpIntentHandler())
+    skill_builder.add_request_handler(CancelOrStopIntentHandler())
+    skill_builder.add_request_handler(FallbackIntentHandler())
+    skill_builder.add_request_handler(NavigateHomeIntentHandler())
+    skill_builder.add_request_handler(SessionEndedRequestHandler())
+    skill_builder.add_exception_handler(GlobalExceptionHandler())
+    return skill_builder
+
 
 # 1. Configuracion de AWS
 REGION = "us-east-1"
@@ -60,20 +116,11 @@ servicio_registro = ServicioRegistro(
 
 
 # 5. Registrar manejadores de Alexa
-sb = SkillBuilder()
-
-sb.add_request_handler(
-    LaunchRequestHandler(repositorio)
-
-)
-
-sb.add_request_handler(
-    VincularCajaIntentHandler(
-        repositorio,
-        servicio_registro,
-        servicio_shadow,
-        os.environ.get("PREFIJO_THING", "caja-enigmas-")
-    )
+sb = crear_skill(
+    repositorio,
+    servicio_registro,
+    servicio_shadow,
+    os.environ.get("PREFIJO_THING", "caja-enigmas-")
 )
 # 6. Punto de entrada de AWS Lambda
 lambda_handler = sb.lambda_handler()

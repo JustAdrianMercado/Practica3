@@ -1,6 +1,12 @@
+"""Bienvenida según la identidad y la vinculación del usuario."""
+
+from xml.sax.saxutils import escape
 
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.utils import is_request_type
+
+from manejadores.identidad import obtener_user_id
+from textos import SIN_USUARIO
 
 
 class LaunchRequestHandler(AbstractRequestHandler):
@@ -11,15 +17,14 @@ class LaunchRequestHandler(AbstractRequestHandler):
         return is_request_type("LaunchRequest")(handler_input)
 
     def handle(self, handler_input):
-        user_id = (
-            handler_input.request_envelope
-            .context.system.user.user_id
-        )
+        user_id = obtener_user_id(handler_input)
 
-        vinculacion = self.repositorio.obtener(user_id)
+        vinculacion = self.repositorio.obtener(user_id) if user_id else None
 
-        if vinculacion:
-            thing_name = vinculacion["thingName"]
+        if not user_id:
+            mensaje = SIN_USUARIO
+        elif vinculacion:
+            thing_name = escape(vinculacion["thingName"])
             mensaje = (
                 "Bienvenido a Caja de los Enigmas. "
                 f"Tu caja {thing_name} está vinculada. "
