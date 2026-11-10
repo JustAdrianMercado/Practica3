@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1480" height="1080" viewBox="0 0 1480 1080" role="img" aria-labelledby="titulo descripcion">
-  <title id="titulo">Caja de los Enigmas: circuito previsto del ESP32, SG90 y reed</title>
-  <desc id="descripcion">Esquema funcional, sin posiciones físicas de pines ni protoboard. El ESP32 recibe alimentación USB. GPIO18 controla la señal del SG90, alimentado por una fuente externa regulada de 5 V. GPIO4 se conecta mediante un reed de dos terminales a GND, con INPUT_PULLUP interno. La interpretación provisional LOW = tapa cerrada y HIGH = tapa abierta supone que el contacto cierra al acercar el imán; debe comprobarse físicamente porque no todos los reed actúan igual. La fuente, el servo, el ESP32 y el reed comparten GND. Se recomienda, sin ser obligatorio, un capacitor electrolítico de 470 a 1000 microfaradios, preferiblemente de 16 V nominales: positivo a +5 V del servo y negativo a GND. Los 16 V son la tensión nominal máxima del capacitor, no su tensión de alimentación; en este circuito se aplican 5 V respetando su polaridad. Los positivos de USB y de la fuente externa no se unen.</desc>
+  <title id="titulo">Caja de los Enigmas — Circuito implementado</title>
+  <desc id="descripcion">Montaje físico descrito y comprobado por el equipo, representado como esquema funcional y no como mapa físico de pines. El ESP32 DOIT DevKit V1 se alimenta por USB desde la computadora. El SG90 se conecta mediante Dupont: naranja a GPIO18, rojo a VIN y marrón a GND de la fila inferior del ESP32. No se conecta fuente externa ni capacitor. Se comprobó el giro del servo en ambos sentidos sin carga mecánica. El main.cpp actual utiliza las constantes de ConfiguracionHardware.h: 45 grados para cerrada y 135 para abierta. Arranca ordenando cerrar a 45 grados. Son valores provisionales del código, no una calibración física validada del mecanismo. El reed de dos cables grises se conecta así: cable 1 a protoboard a50, jumper b50 a GPIO4; cable 2 a a52, jumper b52 a GND de la fila superior del ESP32. a50 y b50 están conectados entre sí; a52 y b52 forman otro contacto. GPIO4 usa INPUT_PULLUP interno. Se comprobó físicamente LOW con imán cerca, correspondiente a tapa cerrada, y HIGH con imán lejos, correspondiente a tapa abierta. Los dos GND pertenecen a la misma referencia de la placa. El mecanismo de bloqueo todavía no fue probado. Para un mecanismo con mayor demanda de corriente se recomienda una fuente regulada independiente con GND común.</desc>
   <defs>
     <style>
       text { font-family: 'Segoe UI', Arial, sans-serif; fill: #172c43; }
@@ -19,97 +19,83 @@
     </style>
   </defs>
   <rect width="1480" height="1080" fill="#f5f8fc"/>
-  <text x="60" y="51" class="titulo">Caja de los Enigmas · Circuito previsto</text>
-  <text x="60" y="81" class="subtitulo">Esquema eléctrico funcional · Montaje, fuente, polaridad del reed y ángulos pendientes de verificación física</text>
+  <text x="60" y="51" class="titulo">Caja de los Enigmas — Circuito implementado</text>
+  <text x="60" y="81" class="subtitulo">SIS-234 · Montaje real comunicado por el equipo · Esquema de terminales, no ubicación física de pines</text>
 
-  <rect x="100" y="120" width="260" height="65" rx="12" fill="#e6efff" stroke="#306bc6" stroke-width="2"/>
-  <text x="230" y="148" class="etiqueta" text-anchor="middle">USB del ESP32</text>
-  <text x="230" y="172" class="pequena" text-anchor="middle">Alimentación propia de la placa</text>
-  <path d="M230 185 V230" class="usb"/>
+  <rect x="100" y="120" width="320" height="65" rx="12" fill="#e6efff" stroke="#306bc6" stroke-width="2"/>
+  <text x="260" y="148" class="etiqueta" text-anchor="middle">Computadora → USB del ESP32</text>
+  <text x="260" y="172" class="pequena" text-anchor="middle">Única alimentación del montaje</text>
+  <path id="alimentacion-usb" d="M260 185 V230" class="usb"/>
 
-  <rect x="80" y="230" width="330" height="360" rx="16" fill="#fff" stroke="#306bc6" stroke-width="3"/>
+  <rect x="900" y="115" width="440" height="80" rx="14" fill="#edf8f4" stroke="#167a65" stroke-width="2"/>
+  <text x="1120" y="145" class="etiqueta" text-anchor="middle">Pruebas físicas realizadas por el equipo</text>
+  <text x="1120" y="173" class="nota" text-anchor="middle">SG90: giro sin carga · Reed: LOW y HIGH comprobados</text>
+
+  <rect x="80" y="230" width="360" height="550" rx="16" fill="#fff" stroke="#306bc6" stroke-width="3"/>
   <text x="110" y="273" class="nombre">ESP32</text>
   <text x="110" y="300" class="etiqueta">DOIT DevKit V1</text>
-  <text x="390" y="346" class="etiqueta" text-anchor="end">GPIO18</text>
-  <text x="110" y="390" class="pequena">Solo se muestran terminales usados.</text>
-  <text x="390" y="434" class="etiqueta" text-anchor="end">GPIO4</text>
-  <text x="110" y="480" class="nota">INPUT_PULLUP interno</text>
-  <text x="110" y="505" class="pequena">No conectar el reed a +5 V.</text>
-  <text x="110" y="545" class="pequena">3V3 y VIN/5V: sin conexión externa</text>
-  <text x="230" y="575" class="etiqueta" text-anchor="middle">GND</text>
+  <text x="420" y="344" class="etiqueta" text-anchor="end">GPIO18</text>
+  <text x="110" y="389" class="pequena">Terminales usados en el montaje real</text>
+  <text x="420" y="434" class="etiqueta" text-anchor="end">VIN → alimentación del servo</text>
+  <text x="420" y="524" class="etiqueta" text-anchor="end">GND · fila inferior</text>
+  <text x="110" y="578" class="pequena">3V3: sin conexión al servo ni al reed</text>
+  <text x="420" y="634" class="etiqueta" text-anchor="end">GPIO4 · INPUT_PULLUP</text>
+  <text x="420" y="724" class="etiqueta" text-anchor="end">GND · fila superior</text>
+  <text x="110" y="760" class="pequena">Ambos GND comparten referencia en la placa.</text>
 
-  <rect x="900" y="120" width="400" height="100" rx="14" fill="#fff" stroke="#c83340" stroke-width="3"/>
-  <text x="1100" y="155" class="nombre" text-anchor="middle">Fuente externa regulada</text>
-  <text x="1100" y="182" class="etiqueta" text-anchor="middle">Salida de 5 V CC · Por verificar</text>
-  <text x="1000" y="208" class="nota" text-anchor="middle">+5 V</text>
-  <text x="1250" y="208" class="nota" text-anchor="middle">GND / −</text>
+  <rect x="900" y="230" width="440" height="320" rx="16" fill="#fff" stroke="#a16a16" stroke-width="3"/>
+  <text x="1120" y="272" class="nombre" text-anchor="middle">Servomotor SG90</text>
+  <text x="1120" y="300" class="nota" text-anchor="middle">Conexiones mediante cables Dupont</text>
+  <text x="925" y="344" class="etiqueta">Señal · cable naranja</text>
+  <text x="1120" y="385" class="etiqueta" text-anchor="middle">45° cerrada (arranque) · 135° abierta</text>
+  <text x="1120" y="410" class="pequena" text-anchor="middle">Valores del código; calibración mecánica pendiente</text>
+  <text x="925" y="434" class="etiqueta">Alimentación · cable rojo</text>
+  <text x="1120" y="472" class="nota" text-anchor="middle">Desde VIN del ESP32 alimentado por USB</text>
+  <text x="925" y="504" class="etiqueta">GND · cable marrón</text>
+  <text x="1120" y="534" class="pequena" text-anchor="middle">Movimiento comprobado en ambos sentidos, sin carga.</text>
 
-  <rect x="900" y="340" width="300" height="230" rx="16" fill="#fff" stroke="#a16a16" stroke-width="3"/>
-  <text x="1050" y="385" class="nombre" text-anchor="middle">Servomotor SG90</text>
-  <text x="1020" y="415" class="nota" text-anchor="middle">Señal (S)</text>
-  <text x="1020" y="440" class="pequena" text-anchor="middle">Normalmente naranja</text>
-  <text x="1020" y="470" class="nota" text-anchor="middle">+ alimentación: rojo habitual</text>
-  <text x="1020" y="495" class="nota" text-anchor="middle">− / GND: marrón habitual</text>
-  <text x="1050" y="530" class="pequena" text-anchor="middle">Verificar el servo real: el color no basta.</text>
-  <text x="1000" y="362" class="pequena" text-anchor="middle">+</text>
-  <text x="1100" y="558" class="pequena" text-anchor="middle">GND</text>
+  <path id="senal-servo" d="M440 350 H900" class="senal"/>
+  <text x="500" y="334" class="nota">GPIO18 → naranja</text>
+  <path id="alimentacion-servo" d="M440 440 H900" class="positivo"/>
+  <text x="500" y="420" class="nota">VIN → rojo</text>
+  <path id="retorno-servo" d="M440 530 H780 V510 H900" class="tierra"/>
+  <text x="500" y="555" class="nota">GND de la fila inferior → marrón</text>
 
-  <rect x="500" y="570" width="260" height="160" rx="14" fill="#fff" stroke="#167a65" stroke-width="2"/>
-  <text x="630" y="604" class="nombre" text-anchor="middle">Reed magnético</text>
-  <text x="630" y="628" class="pequena" text-anchor="middle">Dos terminales · Imán externo</text>
-  <path d="M500 665 H570 M570 665 L610 645 M630 665 H760" fill="none" stroke="#167a65" stroke-width="3"/>
-  <circle cx="570" cy="665" r="4" fill="#167a65"/>
-  <circle cx="630" cy="665" r="4" fill="#167a65"/>
-  <text x="520" y="711" class="pequena">Dibujado abierto, no medido.</text>
+  <rect x="900" y="610" width="440" height="200" rx="14" fill="#fff" stroke="#167a65" stroke-width="2"/>
+  <text x="1120" y="645" class="nombre" text-anchor="middle">Reed magnético · dos cables grises</text>
+  <path d="M900 680 H1030 M1030 680 L1070 660 M1090 680 H1260 V730 H900" fill="none" stroke="#167a65" stroke-width="3"/>
+  <circle cx="1030" cy="680" r="4" fill="#167a65"/>
+  <circle cx="1090" cy="680" r="4" fill="#167a65"/>
+  <text x="925" y="707" class="pequena">Símbolo representado con el contacto abierto.</text>
+  <text x="925" y="764" class="nota">LOW = imán cerca → tapa cerrada</text>
+  <text x="925" y="788" class="nota">HIGH = imán lejos → tapa abierta</text>
 
-  <rect x="1195" y="555" width="180" height="190" rx="12" fill="#fff7ed" stroke="#b88a46" stroke-width="2" stroke-dasharray="7 5"/>
-  <text x="1285" y="583" class="nota" text-anchor="middle">Capacitor opcional</text>
-  <text x="1285" y="606" class="nota" text-anchor="middle">470–1000 µF</text>
-  <text x="1210" y="637" class="etiqueta">+</text>
-  <text x="1210" y="674" class="etiqueta">−</text>
-  <text x="1285" y="707" class="pequena" text-anchor="middle">Electrolítico polarizado</text>
-  <text x="1285" y="730" class="pequena" text-anchor="middle">Preferiblemente 16 V</text>
+  <path id="entrada-reed" d="M440 640 H700 V680 H900" class="entrada"/>
+  <text x="500" y="620" class="nota">GPIO4 → b50 ↔ a50 → cable gris 1</text>
+  <path id="retorno-reed" d="M440 730 H900" class="tierra"/>
+  <text x="500" y="755" class="nota">GND superior → b52 ↔ a52 → cable gris 2</text>
 
-  <path id="senal-servo" d="M410 350 H700 V420 H900" class="senal"/>
-  <text x="485" y="334" class="nota">Señal de control · GPIO18</text>
-  <path id="entrada-reed" d="M410 440 H470 V665 H500" class="entrada"/>
-  <text x="500" y="481" class="nota">GPIO4 → contacto · INPUT_PULLUP</text>
-  <text x="500" y="505" class="pequena">Provisional: LOW = tapa cerrada; HIGH = tapa abierta.</text>
-  <text x="500" y="529" class="pequena">Supone que el contacto cierra al acercar el imán.</text>
-  <text x="500" y="553" class="pequena">Verificar físicamente; no todos los reed actúan igual.</text>
-  <path id="alimentacion-servo" d="M1000 220 V340" class="positivo"/>
-  <path id="positivo-capacitor" d="M1000 280 H1260 V540 H1380 V639 H1280" class="positivo"/>
-  <text x="1060" y="268" class="nota">+5 V externo</text>
-  <circle cx="1000" cy="280" r="7" fill="#c83340"/>
-  <path d="M1240 639 H1320 M1240 668 Q1280 649 1320 668" fill="none" stroke="#364152" stroke-width="4"/>
-  <path d="M1280 658 V680 H1380 V780 H1260 V840" class="tierra"/>
-  <path id="retorno-fuente" d="M1250 220 H1400 V840" class="tierra"/>
-  <path id="retorno-servo" d="M1100 570 V840" class="tierra"/>
-  <path id="retorno-esp32" d="M230 590 V840" class="tierra"/>
-  <path id="retorno-reed" d="M760 665 V840" class="tierra"/>
-  <path id="gnd-comun" d="M230 840 H1400" class="tierra"/>
-  <g fill="#364152">
-    <circle cx="230" cy="840" r="7"/><circle cx="760" cy="840" r="7"/>
-    <circle cx="1100" cy="840" r="7"/><circle cx="1260" cy="840" r="7"/>
-    <circle cx="1400" cy="840" r="7"/>
-  </g>
-  <path d="M800 840 V863 M776 863 H824 M784 875 H816 M793 887 H807" class="tierra"/>
-  <text x="60" y="878" class="etiqueta">GND común: ESP32 + fuente externa + servo + reed</text>
-  <text x="60" y="904" class="pequena">Capacitor recomendado, no obligatorio: + a +5 V del servo; − a GND.</text>
-  <text x="820" y="904" class="pequena">16 V: tensión nominal máxima, no alimentación (5 V).</text>
   <g class="terminal">
-    <circle cx="230" cy="230" r="7"/>
-    <circle cx="410" cy="350" r="7"/><circle cx="410" cy="440" r="7"/><circle cx="230" cy="590" r="7"/>
-    <circle cx="1000" cy="220" r="7"/><circle cx="1250" cy="220" r="7"/>
-    <circle cx="1000" cy="340" r="7"/><circle cx="900" cy="420" r="7"/><circle cx="1100" cy="570" r="7"/>
-    <circle cx="500" cy="665" r="7"/><circle cx="760" cy="665" r="7"/>
+    <circle cx="260" cy="230" r="7"/>
+    <circle cx="440" cy="350" r="7"/><circle cx="900" cy="350" r="7"/>
+    <circle cx="440" cy="440" r="7"/><circle cx="900" cy="440" r="7"/>
+    <circle cx="440" cy="530" r="7"/><circle cx="900" cy="510" r="7"/>
+    <circle cx="440" cy="640" r="7"/><circle cx="900" cy="680" r="7"/>
+    <circle cx="440" cy="730" r="7"/><circle cx="900" cy="730" r="7"/>
   </g>
-  <path d="M60 932 H110" class="senal"/><text x="122" y="938" class="nota">Señal servo</text>
-  <path d="M310 932 H360" class="entrada"/><text x="372" y="938" class="nota">Entrada reed</text>
-  <path d="M560 932 H610" class="positivo"/><text x="622" y="938" class="nota">+5 V externo</text>
-  <path d="M810 932 H860" class="tierra"/><text x="872" y="938" class="nota">GND</text>
-  <path d="M990 932 H1040" class="usb"/><text x="1052" y="938" class="nota">USB de la placa</text>
-  <rect x="50" y="968" width="1380" height="84" rx="12" fill="#fff1f0" stroke="#c83340"/>
-  <text x="70" y="996" class="etiqueta">No unir los positivos de USB y fuente externa. No llevar +5 V a 3V3 ni alimentar el servo desde GPIO.</text>
-  <text x="70" y="1023" class="nota">Solo GND es común entre alimentaciones. Revisar todo sin energía antes de conectar USB y fuente; no hay mapa de protoboard.</text>
+
+  <rect x="60" y="836" width="1360" height="88" rx="12" fill="#fff" stroke="#c8d3e1" stroke-width="2"/>
+  <text x="80" y="863" class="etiqueta">Protoboard y alcance de la prueba</text>
+  <text x="80" y="889" class="nota">Gris 1 → a50; jumper b50 → GPIO4. Gris 2 → a52; jumper b52 → GND de la fila superior.</text>
+  <text x="80" y="912" class="pequena">a50 ↔ b50 y a52 ↔ b52 son contactos separados. El mecanismo de bloqueo de la caja todavía no fue probado.</text>
+
+  <path d="M60 954 H110" class="senal"/><text x="122" y="960" class="nota">Señal SG90</text>
+  <path d="M310 954 H360" class="entrada"/><text x="372" y="960" class="nota">Entrada reed</text>
+  <path d="M560 954 H610" class="positivo"/><text x="622" y="960" class="nota">Alimentación desde VIN</text>
+  <path d="M870 954 H920" class="tierra"/><text x="932" y="960" class="nota">GND</text>
+  <path d="M1060 954 H1110" class="usb"/><text x="1122" y="960" class="nota">USB de la placa</text>
+
+  <rect x="50" y="986" width="1380" height="70" rx="12" fill="#fff1f0" stroke="#c83340"/>
+  <text x="70" y="1014" class="etiqueta">SG90 desde VIN: probado sin carga mecánica; fuente externa y capacitor no instalados.</text>
+  <text x="70" y="1040" class="nota">Para un mecanismo que demande más corriente, se recomienda una fuente regulada independiente con GND común.</text>
 </svg>
