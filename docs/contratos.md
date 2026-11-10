@@ -2,9 +2,7 @@
 
 Este documento fija los nombres, formatos y reglas que comparten el firmware, la Lambda y la skill, para que cada integrante trabaje en paralelo. **Si alguien necesita cambiar algo de aquí, lo avisa en el grupo antes de cambiar su código** y actualiza este archivo en el mismo PR.
 
-| Estado | Responsables de aprobar |
-|---|---|
-| Borrador v0.1 (06/11/2026) | ☐ Santiago · ☐ Adrián · ☐ Mateo · ☐ Lucía |
+Referencia compartida del proyecto; las reglas y formatos siguientes se conservan.
 
 ## 1. AWS
 
@@ -62,7 +60,7 @@ Prefijo: `$aws/things/<thingName>/shadow/`
 **Frecuencia de reporte:**
 - **Por evento:** apertura o cierre de la tapa y cada movimiento del servo, en ≤1 s.
 - **Periódico de respaldo:** reporte completo cada **60 s**.
-- **Justificación:** la tapa es un evento discreto, así que se reporta de inmediato. El respaldo de 60 s mantiene el Shadow vigente con unos 1 440 mensajes por día y por caja, muy por debajo del límite de la capa gratuita.
+- **Justificación:** la tapa es un evento discreto, así que se reporta de inmediato. El respaldo de 60 s mantiene el Shadow vigente con unos 1 440 mensajes por día y por caja, como estimación del respaldo; no representa el total de mensajes ni acredita la elegibilidad de la cuenta para una capa gratuita.
 
 ## 4. Vinculación usuario ↔ caja
 
@@ -89,7 +87,7 @@ Un usuario tiene como máximo una caja vinculada.
 | Elemento | Valor |
 |---|---|
 | Función | `caja-enigmas-skill`, Python 3.12, us-east-1. |
-| Rol | `caja-enigmas-lambda-rol` ([config/aws/politica-rol-lambda.json](../config/aws/), lo agrega Mateo). |
+| Rol | `caja-enigmas-lambda-rol` ([política exportada](../config/aws/politica-rol-lambda.json)). |
 | Variables de entorno | `TABLA_VINCULACIONES=CajaEnigmasVinculaciones`, `PREFIJO_THING=caja-enigmas-`, `IOT_ENDPOINT=https://xxxxxxxx-ats.iot.us-east-1.amazonaws.com`. |
 | Disparador | Alexa Skills Kit, con verificación del Skill ID. |
 
@@ -121,9 +119,19 @@ Los valores del firmware están todos en [firmware/include/ConfiguracionHardware
 |---|---|---|
 | Placa | ESP32 DOIT DEVKIT V1 (`esp32doit-devkit-v1`). | Confirmado |
 | Servo SG90 (señal) | GPIO 18. | Confirmado |
-| Alimentación del servo | Fuente externa regulada de 5 V, **sin usar VIN**, con **GND común con el ESP32**; capacitor de 470–1000 µF recomendado. | Confirmado; fuente pendiente de compra |
+| Alimentación prevista para el montaje definitivo | Fuente externa regulada de 5 V, **sin usar VIN**, con **GND común con el ESP32**; capacitor de 470–1000 µF recomendado. | Alternativa para integración mecánica; el montaje probado usa VIN por USB |
 | Ángulos del servo | cerrada = 45° / abierta = 135° | **Provisionales**: calibrar con `firmware/pruebas/servo` |
-| Reed switch | Entre GPIO 4 y GND, con `INPUT_PULLUP`. | Confirmado; reed pendiente de compra |
-| Valor lógico con la tapa cerrada | `LOW` (imán cerca: el reed cierra a GND). `HIGH` = tapa abierta. | **Provisional**: verificar con `firmware/pruebas/reed` |
+| Reed switch | Entre GPIO 4 y GND, con `INPUT_PULLUP`. | Cableado y niveles documentados por el equipo |
+| Valor lógico con la tapa cerrada | `LOW` (imán cerca: el reed cierra a GND). `HIGH` = tapa abierta. | Niveles y representación de tapa comprobados manualmente; sin serie estadística registrada |
 
-Sin el reed conectado, el pull-up deja GPIO 4 en `HIGH` y la placa reporta `tapa: "abierta"`. Es lo esperado mientras no esté el montaje.
+**Montaje de ensayo documentado el 10/11/2026:** el
+[circuito actualizado](diagramas/circuito.svg), integrado por Santiago en
+`e405b8f`, muestra el servo alimentado desde VIN del ESP32 por USB, sin fuente
+externa ni capacitor. Registra giro en ambos sentidos sin carga y reed LOW con
+imán cerca / HIGH con imán lejos. Esta configuración de ensayo difiere de la
+alimentación definitiva prevista en la tabla; no acredita funcionamiento bajo
+carga ni calibración del mecanismo. El reed se documenta en a50/b50 hacia GPIO4
+y a52/b52 hacia GND. La [fotografía del montaje](evidencias/MontajeDeComponentes.jpg) documenta los componentes.
+El equipo confirmó el prototipo de mesa sin pestillo; no se registraron distancias ni una serie de ciclos.
+
+Si se desconecta el reed, el pull-up deja GPIO 4 en `HIGH` y la placa reporta `tapa: "abierta"`; ese valor por sí solo no demuestra la posición física de la tapa.

@@ -1,14 +1,16 @@
 # Diagnósticos individuales del hardware
 
-Programas preparados para ejecutar más adelante. No se han cargado al ESP32 ni
-se ha comprobado físicamente el hardware.
+Programas de diagnóstico separados del firmware integrado. El equipo confirmó
+el funcionamiento manual de servo y reed en el prototipo de mesa; no se atribuye
+a estos programas un ensayo concreto sin identificar el firmware utilizado.
+Ver los resultados y fotografías en [INFORME.md](../../INFORME.md).
 
 Este proyecto tiene su propio `platformio.ini`. El entorno `servo` compila solo
 `servo/main.cpp`; `reed` compila `reed/main.cpp` y el `SensorTapa.cpp` original.
 Cada entorno incluye un único `setup()` y `loop()`. El proyecto principal sigue
 usando `firmware/src` y su configuración no se modifica.
 
-## Preparación física pendiente
+## Preparación para un diagnóstico aislado
 
 - Revisar la fuente externa regulada de **5 V**, su polaridad y el cableado antes
   de conectar el SG90. No alimentarlo desde GPIO ni desde 3V3.
@@ -109,5 +111,6 @@ Observar que los cambios confirmados solo aparezcan tras 50 ms sin variaciones
 detectadas. Serial muestra las transiciones muestreadas, no garantiza capturar
 todos los rebotes eléctricos; su impresión también consume tiempo.
 
-Quedan pendientes la polaridad real, la distancia de conmutación y la evaluación
-del antirrebote con el sensor y el montaje físicos.
+El equipo confirmó LOW con imán cerca y HIGH con imán lejos. No registró
+distancias ni mediciones instrumentales de antirrebote; el resumen Serial
+permite observar el comportamiento muestreado, con las limitaciones descritas.

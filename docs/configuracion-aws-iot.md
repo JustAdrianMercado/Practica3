@@ -1,6 +1,13 @@
 # Configuración de la cuenta de AWS y de AWS IoT Core
 
-Pasos de la Iteración 0, hechos desde la consola web de AWS. Todo se crea en la región **us-east-1 (N. Virginia)**: revisar el selector de región arriba a la derecha antes de cada paso. Para el informe (§3.3), sacar capturas **sin mostrar el ID de la cuenta ni el contenido de los certificados**.
+Referencia de la configuración inicial desde la consola web, conservada de la
+Iteración 0. El estado de la implementación y sus evidencias se documentan en
+el [informe final](../INFORME.md). Las políticas amplias sugeridas para usuarios
+en el apartado 2 no constituyen una evaluación de sus permisos efectivos ni
+describen los permisos del rol de ejecución de Lambda.
+
+Todo se configura en **us-east-1 (N. Virginia)**. Las capturas compartidas
+ocultan el ID de cuenta y el contenido de los certificados.
 
 ## 1. Alerta de facturación
 

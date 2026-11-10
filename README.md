@@ -1,6 +1,6 @@
 # Caja de los Enigmas — Práctica 3 SIS-234
 
-Objeto inteligente con ESP32 integrado con **Alexa** mediante **AWS IoT Core** (Device Shadow), **AWS Lambda** (Python) y **DynamoDB**. Es el primer módulo del proyecto final *Escape Room IoT: La Caja de los Enigmas*: una caja con la tapa trabada por un servo, que Alexa abre y cierra, y un reed switch que informa si la tapa está abierta.
+Objeto inteligente con ESP32 integrado con **Alexa** mediante **AWS IoT Core** (Device Shadow), **AWS Lambda** (Python) y **DynamoDB**. Es el primer módulo del proyecto final *Escape Room IoT: La Caja de los Enigmas*. El prototipo entregado es un montaje de mesa: un SG90 representa la cerradura y un reed con imán representa la apertura de la tapa, sin pestillo acoplado.
 
 **Integrantes:** Santiago Torres · Adrián Mercado · Mateo Rojas · Lucía Escobar
 
@@ -25,6 +25,9 @@ docs/            Contratos, planificación, consigna, diagramas y evidencias
 INFORME.md       Informe técnico
 ```
 
+- [Informe técnico final](INFORME.md): implementación, pruebas y evidencias.
+- [Índice de documentación](docs/README.md).
+- [Backend de Alexa](lambda/README.md).
 - [Contratos entre componentes](docs/contratos.md): Shadow, temas MQTT, vinculación, tabla, intents y pines.
 - [Planificación por integrante](docs/planificacion/00-resumen.md).
 - [Consigna](docs/consigna/Práctica_3.md).
