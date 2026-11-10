@@ -95,7 +95,4 @@
   <path d="M870 954 H920" class="tierra"/><text x="932" y="960" class="nota">GND</text>
   <path d="M1060 954 H1110" class="usb"/><text x="1122" y="960" class="nota">USB de la placa</text>
 
-  <rect x="50" y="986" width="1380" height="70" rx="12" fill="#fff1f0" stroke="#c83340"/>
-  <text x="70" y="1014" class="etiqueta">SG90 desde VIN: probado sin carga mecánica; fuente externa y capacitor no instalados.</text>
-  <text x="70" y="1040" class="nota">Para un mecanismo que demande más corriente, se recomienda una fuente regulada independiente con GND común.</text>
 </svg>
