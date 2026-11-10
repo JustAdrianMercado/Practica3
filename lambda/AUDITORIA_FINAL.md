@@ -1,5 +1,10 @@
 # Auditoría final de Mateo: Lambda y DynamoDB
 
+**Actualización del 09/11/2026:** el paquete definitivo ya se reconstruyó y
+validó, con respaldo del ZIP anterior. Los resultados actuales y los pasos
+de carga están en [DESPLIEGUE_FINAL.md](DESPLIEGUE_FINAL.md). El contenido
+siguiente conserva el registro histórico de la auditoría del 07/11.
+
 Auditoría local del 07/11/2026, rama `feat/lambda`. Referencias:
 [consigna](../docs/consigna/Práctica_3.md),
 [plan](../docs/planificacion/03-mateo-lambda.md) y

@@ -1,8 +1,8 @@
 # Contribución de Mateo: backend Lambda y vinculaciones
 
 Material para integrar con Lucía en `INFORME.md`, secciones 2.4, 2.5, 2.7,
-3.2, 3.4, 4.2 y 4.8. Describe el código de esta rama y las verificaciones
-locales de la auditoría final. Los diagramas representan el diseño y el flujo
+3.2, 3.4, 4.2 y 4.8. Describe el código, las verificaciones locales y las
+capturas aportadas por Mateo. Los diagramas representan el diseño y el flujo
 previsto; no son evidencias de ejecución con dispositivos reales. La matriz de
 requisitos, las evidencias pendientes y el procedimiento de entrega están en
 [AUDITORIA_FINAL.md](AUDITORIA_FINAL.md); el texto para incorporar al informe
@@ -11,27 +11,37 @@ está en [APORTE_INFORME.md](APORTE_INFORME.md) y la defensa en
 
 ## Estado conocido y alcance de las evidencias
 
-Mateo informó en esta conversación que la tabla, el rol, la Lambda Python
-3.12 y el desencadenador Alexa Skills Kit están configurados, y que el backend
-anterior a esta auditoría está empaquetado y desplegado. También informó que
-Alexa vinculó la caja 1, consultó su estado y envió una orden de cierre, y que
-`desired.cerradura` y `reported.cerradura` coincidieron en IoT Core.
+Mateo informó que la tabla, el rol, la Lambda Python 3.12 y el desencadenador
+Alexa Skills Kit están configurados. También comunicó como antecedentes una
+vinculación de caja 1, una consulta de estado y una orden de cierre desde
+Alexa. No se precisó el intent consultado ni se aportó en estas imágenes una
+conversación de voz que permita verificar ese recorrido completo.
 
-Son **resultados reales comunicados por Mateo**, pendientes de adjuntar con
-capturas, fecha y logs. No se especificó qué intent produjo la consulta de
-estado, ni se inspeccionó la versión efectiva de la función en AWS. Esta
-auditoría ejecutó **76 pruebas locales con mocks en Python 3.12.10**, sin
-invocar servicios de AWS. Las 67 pruebas anteriores se conservaron.
+Se revisaron las **siete capturas 01–07** de
+`docs/evidencias/mateo-lambda/`. Su descripción y alcance están en
+[Evidencias de implementación en AWS](APORTE_INFORME.md#evidencias-de-implementación-en-aws).
+Las capturas muestran código en Lambda, una política de invocación ASK, una
+ejecución de consola, un ítem de DynamoDB, el Shadow clásico y registros de
+CloudWatch. El hash mostrado por la captura 04 para `$LATEST` coincide con
+el ZIP definitivo descrito en [DESPLIEGUE_FINAL.md](DESPLIEGUE_FINAL.md).
+Esto acredita esa ejecución capturada, sin establecer qué versión o alias
+usa el endpoint de Alexa.
 
-**La prueba física con ESP32 y servomotor no se realizó.** La coincidencia de
-`desired` y `reported` no demuestra un movimiento del servo ni identifica por
-sí sola el origen del reporte. No se midieron tiempos ni se adjuntaron nuevas
-evidencias experimentales en esta auditoría.
+La validación automatizada conserva **76 pruebas locales aprobadas con mocks
+en Python 3.12.10**, incluidas las 67 anteriores. Las capturas de AWS son
+evidencias separadas; esta revisión documental no ejecutó comandos AWS ni
+modificó recursos de la nube.
 
-**Los cambios desplegables de la auditoría requieren un nuevo ZIP y una
-actualización manual de AWS.** El ZIP anterior se conserva y ya no representa
-el código local corregido. Las pruebas reales comunicadas corresponden al
-backend anterior, no a las correcciones todavía sin desplegar.
+**La prueba física con ESP32 y servomotor sigue pendiente.** La coincidencia
+de `desired` y `reported` de la captura 06 no demuestra movimiento del servo
+ni identifica al autor del reporte. La captura 07 aporta dos duraciones de
+invocaciones del 07/11/2026, anteriores al ZIP definitivo; no mide latencia
+de voz de extremo a extremo ni los requisitos físicos.
+
+**El ZIP definitivo ya fue reconstruido y verificado**, conservando el
+anterior. Quedan pendientes la regresión completa de Alexa sobre su endpoint
+efectivo, la acreditación de la configuración no visible en las capturas y
+las pruebas del montaje físico.
 
 ## Arquitectura del backend
 
@@ -289,14 +299,14 @@ los logs reales de CloudWatch.
 
 ## Revisión de permisos y configuración
 
-Revisión **estática**, basada en los archivos de `config/aws/`. No equivale a
-una evaluación de permisos efectivos del rol en la cuenta. El usuario informó
-que DynamoDB, el rol, las variables, la Lambda desplegada y el disparador ASK
-están configurados; esa información no se presenta como una inspección nueva
-de la cuenta. No hay herramientas `aws-mcp` disponibles y `aws` no aparece en
-el PATH de esta sesión. No se leyó la configuración desplegada, la versión
-invocada por Alexa ni las políticas efectivas. La configuración operativa
-reportada y la falta de evidencia adjunta se distinguen en la auditoría final.
+Revisión **estática**, basada en `config/aws/` y en las capturas aportadas.
+No equivale a evaluar los permisos efectivos del rol en la cuenta. La
+captura 03 muestra la política de invocación de la función para ASK, distinta
+del rol de ejecución. Las capturas no muestran las variables de entorno,
+runtime, arquitectura, capacidad de la tabla ni todas las políticas del rol.
+No se inspeccionó la cuenta mediante AWS CLI o API. Tampoco se comprobó qué
+versión o alias invoca Alexa; `$LATEST` de la captura 04 no identifica ese
+endpoint por sí solo.
 
 | Permisos en la política exportada | Recurso restringido | Uso en el código |
 |---|---|---|
@@ -407,26 +417,27 @@ pasan por el `SkillBuilder`, el dispatcher y la serialización reales del SDK,
 con servicios o clientes AWS sustituidos. Se crean solicitudes independientes
 para demostrar que no se depende de la sesión de Alexa para la vinculación.
 
-La suite valida la lógica local de RF4–RF9. Las pruebas reales comunicadas por
-Mateo se describen al inicio y todavía requieren sus evidencias. Ni los mocks
-ni la coincidencia observada en el Shadow demuestran RF1–RF3, movimiento del
-servo, reconexión o requisitos no funcionales. No se midieron latencia de
-extremo a extremo, estabilidad, exactitud ni frecuencia física de reporte.
-El ZIP previo existe, pero no contiene estas correcciones: falta generar y
-subir manualmente uno nuevo y repetir la regresión de Alexa.
+La suite valida la lógica local de RF4–RF9. Las capturas revisadas documentan
+solo los resultados descritos al inicio. Ni los mocks ni la coincidencia del
+Shadow demuestran RF1–RF3, movimiento del servo o reconexión. Las duraciones
+históricas visibles en CloudWatch no acreditan latencia de voz de extremo a
+extremo, estabilidad, exactitud ni frecuencia física de reporte. El ZIP
+definitivo está preparado y su hash coincide con la captura 04; falta la
+regresión completa de Alexa sobre el endpoint efectivo.
 
 ## Incidencias y coordinación pendiente
 
-- **Herramientas de revisión:** `aws` no aparece en el PATH y no hay
-  herramientas `aws-mcp`. La revisión de permisos quedó limitada a los
-  archivos exportados; los resultados reales son los comunicados por Mateo.
+- **Alcance de revisión:** se usaron archivos exportados y siete capturas
+  aportadas por Mateo, sin ejecutar comandos AWS. La política de invocación
+  mostrada no acredita todas las políticas del rol de ejecución.
 - **Runtime local:** Python 3.12.10 verificado con 76 pruebas. El SDK de Alexa
   emite `SyntaxWarning` por escapes en sus fuentes, sin impedir los tests.
   El procedimiento de empaquetado está en el
   [README](README.md#empaquetado-local-para-subir-manualmente).
-- **Con Lucía:** el archivo `config/alexa/modelo-interaccion.es-US.json` no
-  existe en esta rama al revisar. Exportarlo desde la consola y comprobar
-  nombres, slots obligatorios, Skill ID, endpoint, respuestas y dos usuarios.
+- **Con Lucía:** el archivo `config/alexa/modelo-interaccion.es-US.json` está
+  presente y su compatibilidad con el backend fue verificada al preparar el
+  ZIP. Falta contrastar el modelo compilado, Skill ID, endpoint, respuestas
+  por voz y dos usuarios en la configuración efectiva de Alexa.
   La confirmación de desvinculación es opcional en el plan y no se implementó;
   si se desea, hay que coordinar su modelo de diálogo antes de añadirla.
 - **Precisión del contrato de intents:** no se cambiaron sus nombres, slots
@@ -439,11 +450,10 @@ subir manualmente uno nuevo y repetir la regresión de Alexa.
   `reported.cerradura`, el código real de cuatro dígitos, comandos sobre el
   servo y recuperación del `desired` pendiente al reconectar. Mantener los
   nombres, tipos y estados de los contratos.
-- **Evidencias con el grupo:** tras actualizar manualmente el backend corregido, ejecutar con Lucía los
-  casos de RF4–RF9 desde el simulador, incluidas dos cuentas/usuarios, código
-  incorrecto, Thing inexistente, cambio, desvinculación y caja desconectada.
-  Registrar resultados observados, capturas y errores reales sin secretos.
-  La vinculación, consulta de estado y orden de cierre comunicadas ya son
-  antecedentes reales; falta adjuntar capturas y logs y precisar el intent de
-  consulta. Las mediciones físicas siguen pendientes. Ver la lista concreta
-  de evidencias en [AUDITORIA_FINAL.md](AUDITORIA_FINAL.md).
+- **Evidencias con el grupo:** confirmar qué versión o alias recibe Alexa y
+  ejecutar con Lucía RF4–RF9 desde el simulador, incluidas dos cuentas,
+  código incorrecto, Thing inexistente, cambio, desvinculación y caja
+  desconectada. Registrar resultados sin secretos. Las siete capturas ya
+  están identificadas; falta evidenciar la conversación, precisar el intent
+  consultado y completar las mediciones físicas. Ver el estado actualizado
+  en [APORTE_INFORME.md](APORTE_INFORME.md#evidencias-de-implementación-en-aws).
