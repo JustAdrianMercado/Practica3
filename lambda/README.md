@@ -5,11 +5,15 @@ y región **us-east-1**. Ver el [plan](../docs/planificacion/03-mateo-lambda.md)
 los [contratos](../docs/contratos.md) y la
 [contribución técnica para el informe](INFORME_TECNICO.md).
 
-**Auditoría final:** 76 pruebas aprobadas con Python 3.12.10. La Lambda y Alexa
-ya tuvieron pruebas reales según lo informado por Mateo; la prueba física con
-ESP32 y servo sigue pendiente. Las correcciones locales de esta auditoría
-requieren **generar un nuevo ZIP y actualizar AWS manualmente**. El ZIP
-anterior no se sobrescribió y está desactualizado respecto de estas fuentes.
+**Paquete definitivo preparado el 09/11/2026:**
+[`caja-enigmas-skill.zip`](caja-enigmas-skill.zip) está **listo para subir a
+AWS**, con las fuentes actuales y 76 pruebas aprobadas en Python 3.12.10,
+también sobre el ZIP extraído con dependencias aisladas. El paquete anterior
+se conservó como respaldo. Ver tamaños, SHA-256, comprobaciones y pasos de
+carga manual en [DESPLIEGUE_FINAL.md](DESPLIEGUE_FINAL.md).
+La Lambda y Alexa ya tuvieron pruebas reales según lo informado por Mateo;
+este ZIP requiere la regresión real después de cargarlo. La prueba física
+con ESP32 y servo sigue pendiente.
 
 Entregables: [auditoría y evidencias](AUDITORIA_FINAL.md),
 [aporte para INFORME.md](APORTE_INFORME.md) y
@@ -131,6 +135,12 @@ no se vuelven a afirmar como ejecutadas por esta sesión.
 
 ## Empaquetado local para subir manualmente
 
+El paquete verificado y sus versiones fijadas están documentados en
+[DESPLIEGUE_FINAL.md](DESPLIEGUE_FINAL.md) y
+[requirements-despliegue.txt](requirements-despliegue.txt). La receta
+siguiente permite preparar otro ZIP; los rangos de `requirements.txt`
+pueden resolver versiones diferentes de las verificadas en el definitivo.
+
 Estos pasos preparan un ZIP nuevo; no despliegan. Ejemplo para **x86_64** en
 Python 3.12, desde la raíz del repositorio. La marca de tiempo permite conservar
 el ZIP y el directorio de dependencias anteriores. No reutilizar los módulos
@@ -245,8 +255,9 @@ envolvente. No copiar `tests/`, documentación, archivos privados ni
 configuraciones de credenciales. `paquete/` y los ZIP ya están ignorados por
 Git. La receta conserva licencias y módulos `docs/*.py` de boto3/botocore
 necesarios en ejecución. Antes de subir, inspeccionar el contenido, verificar
-las fuentes y repetir los tests con las dependencias elegidas. Esta auditoría
-**no generó un ZIP nuevo**: el existente corresponde al backend anterior.
+las fuentes y repetir los tests con las dependencias elegidas. La auditoría
+del 07/11 no generó un ZIP nuevo; la preparación definitiva del 09/11
+reconstruyó y verificó `caja-enigmas-skill.zip`, conservando el anterior.
 Las versiones resueltas pueden cambiar dentro de los rangos de
 `requirements.txt`; registrarlas al
 preparar el paquete final. AWS recomienda empaquetar también boto3 para evitar
@@ -264,14 +275,15 @@ La revisión estática de
 [politica-rol-lambda.json](../config/aws/politica-rol-lambda.json) y
 [tabla-vinculaciones.json](../config/aws/tabla-vinculaciones.json) es coherente
 con los servicios implementados. **No se verificaron los permisos efectivos,
-el código desplegado ni el disparador:** no están disponibles `aws-mcp` ni
-AWS CLI en esta sesión. Ver el detalle y los pasos de consola en la
+el código desplegado ni el disparador:** esta revisión se limita al
+repositorio, sin ejecutar comandos AWS. Ver el detalle y los pasos de consola en la
 [revisión técnica](INFORME_TECNICO.md#revisión-de-permisos-y-configuración).
 
 Con Lucía: comprobar el Skill ID, el disparador Alexa Skills Kit con
 verificación activada y el ARN del endpoint para América; completar el modelo
-`es-US` y exportarlo a `config/alexa/modelo-interaccion.es-US.json` (archivo
-ausente en esta rama al revisar). La skill y el disparador ya están configurados
+`es-US` y exportarlo a `config/alexa/modelo-interaccion.es-US.json`. Este
+archivo está presente y se verificó su compatibilidad con el backend en la
+preparación definitiva del 09/11. La skill y el disparador ya están configurados
 según Mateo; falta adjuntar sus evidencias y confirmar la verificación del
 Skill ID sobre el endpoint efectivo. Ambos slots de vinculación deben ser
 obligatorios y usar delegación automática del diálogo (`delegationStrategy`

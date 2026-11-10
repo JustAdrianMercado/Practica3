@@ -168,9 +168,12 @@ Los contratos fijan `us-east-1`, función `caja-enigmas-skill`, Python 3.12,
 handler `lambda_function.lambda_handler`, rol `caja-enigmas-lambda-rol` y las
 variables `TABLA_VINCULACIONES`, `PREFIJO_THING` e `IOT_ENDPOINT`.
 Mateo comunicó que estos recursos y el desencadenador Alexa Skills Kit están
-configurados y que el backend anterior a la auditoría está desplegado.
-Falta adjuntar la configuración activa y su correspondencia con el endpoint
-de Alexa; esta auditoría local no inspeccionó la cuenta.
+configurados. Las siete capturas revisadas se describen en
+[Evidencias de implementación en AWS](#evidencias-de-implementación-en-aws).
+La captura 04 identifica una ejecución de `$LATEST` cuyo hash coincide con
+el ZIP definitivo local. No se inspeccionó la cuenta directamente: las
+capturas no muestran el runtime, la arquitectura, las variables de entorno,
+el conjunto de políticas del rol ni el endpoint efectivo de Alexa.
 
 | Permiso exportado | Recurso y justificación |
 |---|---|
@@ -195,16 +198,131 @@ invocar la Lambda; es distinta del rol con que Lambda accede a IoT/DynamoDB.
 No se almacenan access keys en el backend: AWS proporciona autorización por
 el rol de ejecución. Los ZIP y paquetes generados están excluidos de Git.
 
+### Evidencias de implementación en AWS
+
+La serie consta de **siete capturas**, numeradas consecutivamente del **01 al
+07**. Las figuras enlazan las copias preparadas para compartir en
+`docs/evidencias/mateo-lambda/para-informe/`. Se ocultaron con rectángulos
+sólidos el código de vinculación, el identificador de usuario de Alexa, el
+usuario de la consola y el número de cuenta AWS donde aparecía, incluidos
+el ARN y la URL. Se conservaron las dimensiones y todos los píxeles fuera
+de esas zonas. Los originales permanecen intactos, como archivos locales
+excluidos de Git; se publican únicamente las copias.
+
+Las rutas de las figuras son relativas a `lambda/APORTE_INFORME.md`. Al
+integrar esta sección en `INFORME.md` de la raíz, cambiar el prefijo
+`../docs/` por `docs/`. Las capturas documentan lo visible al tomarlas;
+no equivalen a una revisión actual de la cuenta mediante AWS.
+
+#### Evidencia 01. Código principal de la función Lambda
+
+![Evidencia 01: código principal y dependencias de la función Lambda](../docs/evidencias/mateo-lambda/para-informe/01-lambda.png)
+
+La consola muestra la función `caja-enigmas-skill` en Norte de Virginia, el
+archivo `lambda_function.py`, sus importaciones de boto3, `SkillBuilder` y
+servicios, y archivos del paquete como `textos.py`, `six.py` y `urllib3`.
+El editor indica `Lambda Deployed`. Documenta la presencia del código y de
+dependencias en la función, pero no muestra la configuración del handler ni
+del runtime.
+
+#### Evidencia 02. Importación de los manejadores y servicios
+
+![Evidencia 02: importaciones de manejadores y servicios en lambda_function.py](../docs/evidencias/mateo-lambda/para-informe/02-lambda.png)
+
+Otra vista del mismo `lambda_function.py` permite leer las importaciones del
+repositorio, registro IoT, servicio Shadow y manejadores de vinculación,
+desvinculación, consultas y apertura/cierre. Complementa la figura 01 y
+evidencia la organización modular; no es una captura de variables de entorno
+ni una prueba individual de cada intent.
+
+#### Evidencia 03. Permiso de invocación para Alexa Skills Kit
+
+![Evidencia 03: política de invocación de la función para Alexa Skills Kit](../docs/evidencias/mateo-lambda/para-informe/03-lambda.png)
+
+La política basada en recursos de la función muestra `Effect: Allow`, el
+principal `alexa-appkit.amazon.com`, la acción `lambda:InvokeFunction` y una
+condición `StringEquals` sobre `lambda:EventSourceToken` con un identificador
+de skill. Documenta la restricción de invocación a una skill. No corresponde
+a la política del rol de ejecución y no acredita sus permisos sobre IoT,
+DynamoDB o CloudWatch. El valor completo del Skill ID no puede contrastarse
+con el endpoint de Alexa a partir de esta vista.
+
+#### Evidencia 04. Ejecución de `$LATEST` con el paquete definitivo
+
+![Evidencia 04: resultado de ejecución de Lambda con versión y hash del paquete](../docs/evidencias/mateo-lambda/para-informe/04-lambda.png)
+
+La consola informa ejecución sin errores y muestra una respuesta JSON de
+Alexa con `reprompt` SSML y `shouldEndSession: false`. El resumen identifica
+`$LATEST` y el código SHA-256 en base64
+`YM8u54WgM3W3s2Xu82+Au05gYVFDN20/HTxeyqK0a9c=`. Este coincide con el hash
+calculado sobre `lambda/caja-enigmas-skill.zip`, cuyo SHA-256 hexadecimal es
+`60cf2ee785a03375b7b365eef36f80bb4e60615143376d3f1d3c5ecaa2b46bd7`.
+La coincidencia vincula el paquete preparado con la ejecución de consola
+capturada: AWS define ese campo como el hash del
+[paquete de despliegue](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunctionConfiguration.html#lambda-GetFunctionConfiguration-response-CodeSha256).
+
+El evento de entrada y la respuesta de voz principal no son legibles en
+esta vista; no se atribuye la ejecución a un intent concreto ni se presenta
+como prueba de voz con Alexa. La indicación «hace 21 segundos» expresa cuánto
+tiempo pasó desde la ejecución, no su duración.
+
+#### Evidencia 05. Vinculación almacenada en DynamoDB
+
+![Evidencia 05: vinculación almacenada en DynamoDB con el usuario oculto](../docs/evidencias/mateo-lambda/para-informe/05-dynamoDB.png)
+
+El explorador de `CajaEnigmasVinculaciones` devuelve un ítem con las columnas
+`userId (Cadena)`, `fechaVinculacion` y `thingName`; esta última contiene
+`caja-enigmas-01`. La consulta de consola muestra un elemento devuelto y uno
+escaneado. Demuestra la persistencia de una relación usuario-caja en ese
+resultado. El identificador de usuario está oculto por privacidad y la fecha
+aparece truncada en la captura: no se infieren sus valores completos, la
+clave de ordenación ni el modo de capacidad de la tabla. Tampoco identifica
+qué ejecución creó el ítem.
+
+#### Evidencia 06. Estado del Shadow clásico de la caja 01
+
+![Evidencia 06: Shadow clásico de caja-enigmas-01 con el código de vinculación oculto](../docs/evidencias/mateo-lambda/para-informe/06-deviceShadow.png)
+
+La vista de sombra clásica de `caja-enigmas-01` muestra
+`desired.cerradura: cerrada` y `reported.cerradura: cerrada`; también muestra
+`reported.tapa: abierta`, `reported.firmware: 0.2.0` y el campo
+`codigoVinculacion`. Documenta los atributos contractuales y la coincidencia
+de estados en esa instantánea. No se exponen aquí ni se transcriben los
+dígitos del código de vinculación.
+
+La coincidencia no identifica quién escribió `reported` ni demuestra
+movimiento físico del servo. La parte visible tampoco aporta la versión ni
+los timestamps del Shadow que permitirían correlacionarlo con una orden.
+
+#### Evidencia 07. Registros de ejecución en CloudWatch
+
+![Evidencia 07: registros históricos de Lambda y duración de invocaciones en CloudWatch](../docs/evidencias/mateo-lambda/para-informe/07-cloudWatch.png)
+
+Se observa el grupo `/aws/lambda/caja-enigmas-skill`, un flujo de `$LATEST`
+y eventos del **07/11/2026 en UTC**, anteriores a la preparación del ZIP
+definitivo del 09/11. En el fragmento visible aparecen `START`, `END`,
+`REPORT` y el mensaje `Shadow consultado correctamente`. Dos filas `REPORT`
+muestran duraciones de **444,74 ms** y **55,08 ms**.
+
+Documenta que hubo ejecuciones y registros en CloudWatch en esa fecha; no
+acredita las políticas completas del rol ni las ejecuciones del paquete
+definitivo. Son dos muestras de duración Lambda, no una medición de latencia
+de voz de extremo a extremo, un promedio representativo ni evidencia de que
+todos los eventos del grupo carezcan de errores.
+
 ### 4.2 Aporte a pruebas funcionales y de la skill
 
 | Tipo de verificación | Resultado y alcance |
 |---|---|
 | Unitarias y flujos con mocks | 76 pruebas aprobadas con Python 3.12.10: 67 anteriores conservadas y 9 regresiones de auditoría. Cubren RF4–RF9, dos usuarios, códigos incorrectos, Thing inexistente, estados pendientes y errores de AWS/red. |
 | Sintaxis | `compileall` aprobado para el código y las pruebas del backend en Python 3.12.10. |
-| Alexa real comunicada por Mateo | Vinculación de caja 1, consulta de estado y envío de cierre. Falta identificar el intent consultado y adjuntar fecha/capturas/logs. |
-| IoT real comunicado por Mateo | Coincidencia de `desired.cerradura` y `reported.cerradura`. Falta adjuntar documento/versiones/timestamps y establecer origen del reporte. |
+| Ejecución real en consola Lambda | Captura 04: ejecución de `$LATEST`, hash coincidente con el ZIP definitivo y fragmento de respuesta Alexa. El evento y el intent exactos no quedan acreditados. |
+| Persistencia real en DynamoDB | Captura 05: una relación almacenada con `thingName=caja-enigmas-01`. No identifica la ejecución que la creó. |
+| Estado real consultado en IoT Core | Captura 06: ambos estados de cerradura son `cerrada`; tapa reportada `abierta`. Origen del reporte, timestamps y aplicación física sin acreditar. |
+| Registros reales en CloudWatch | Captura 07: eventos del 07/11 con dos duraciones visibles. Es evidencia anterior al ZIP definitivo. |
+| Alexa real comunicada por Mateo | Antecedente: vinculación de caja 1, consulta de estado y envío de cierre. Estas capturas no muestran la conversación ni precisan el intent consultado; falta la regresión completa con Lucía sobre el endpoint efectivo. |
 | ESP32 y servomotor físicos | Pendiente. No se afirma movimiento físico ni confirmación originada por el firmware. |
-| RNF | Latencia de Lambda/extremo a extremo, estabilidad, exactitud, reporte y reconexión aún sin mediciones aportadas. |
+| RNF | Dos muestras históricas de duración Lambda en la captura 07. Latencia de voz de extremo a extremo, estabilidad, exactitud, frecuencia de reporte y reconexión siguen pendientes de medición. |
 
 Las pruebas se encuentran en `lambda/tests/`; `test_flujos_skill.py` conserva
 los servicios reales y simula boto3, mientras otros tests sustituyen los
@@ -221,9 +339,17 @@ dinámico sin escape; se corrigieron y se preservó la suite anterior.
 El SDK de Alexa emite `SyntaxWarning` de escapes con Python 3.12, sin impedir
 la suite. No se alteró código de las bibliotecas de terceros.
 
-Los cambios de producción corregidos aún requieren un nuevo ZIP y una
-actualización manual de AWS. Las pruebas reales comunicadas corresponden al
-backend anterior a esas correcciones. Después de actualizar, se debe repetir
-la regresión con Lucía y capturar evidencias. A continuación corresponde la
-prueba física con Adrián/Santiago y las mediciones del plan. La igualdad de
-desired/reported no demuestra por sí sola movimiento ni autoría del reporte.
+El ZIP definitivo ya fue reconstruido y verificado localmente, según
+[DESPLIEGUE_FINAL.md](DESPLIEGUE_FINAL.md). La captura 04 registra una ejecución
+de `$LATEST` con el mismo hash. Esto no establece qué versión o alias invoca
+Alexa ni acredita toda la configuración desplegada. La captura 07 y las
+pruebas reales comunicadas anteriormente son antecedentes del backend previo.
+
+Queda pendiente repetir con Lucía la regresión completa de RF4–RF9 en el
+endpoint efectivo: intents, slots por voz, dos usuarios, código incorrecto,
+Thing inexistente, cambio de caja, desvinculación y caja desconectada.
+Con Adrián/Santiago falta comprobar el sensor, movimiento real del servo,
+autoría y tiempos de `reported`, aplicación del delta, reconexión y orden
+pendiente. La igualdad de desired/reported no demuestra por sí sola movimiento
+ni autoría del reporte. Las mediciones del plan siguen pendientes, salvo las
+dos muestras históricas de duración Lambda descritas en la evidencia 07.

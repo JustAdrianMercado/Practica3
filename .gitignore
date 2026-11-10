@@ -65,6 +65,9 @@ certificados-privados/
 *.swp
 *~
 
+# Evidencias AWS: conservar originales privados localmente y publicar para-informe/.
+/docs/evidencias/mateo-lambda/*.png
+
 # Archivos del sistema operativo
 .DS_Store
 ._*
